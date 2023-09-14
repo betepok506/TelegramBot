@@ -38,7 +38,7 @@ Codemasters Code Cup.
 
 ```commandline
 TELEGRAM_TOKEN --- Telegram token вашего бота
-PORT ---  Порт, на котором будет работать Server API
+PORT ---  Не используется. Server API запускается на 8000 порту, для изменения необходимо задать другой порт в server-api.Dockerfile
 POSTGRES_USER --- Имя пользователя для подключения к PostgreSQL (по умолчания postgres)
 POSTGRES_PASSWORD --- Пароль для подключения к PostgreSQL (по умолчания postgres)
 POSTGRES_DB --- Название PostgreSQL (по умолчания postgres)
@@ -103,3 +103,13 @@ docker compose down --volumes
 
 Это далеко не весь функционал, очень много осталось за кадром. 
 Но вы всегда можете восполнить свое любопытство попробовав попользоватья этим ботом
+
+# Возможные ошибки
+
+Ошибка 1
+Если при попытке взаимодействия с ботом ввыводится
+```commandline
+WARNING - TeleBot: "No connection adapters were found for '10.16.11.202:8000/api/v1/add_user_information'"
+```
+
+Необходимо добавить `http://`  в `SERVER_URI`. Пример: SERVER_URI: "http://172.19.128.1:8000"
