@@ -185,6 +185,7 @@ async def search_employee_by_id(
             "id": search_result.id,
             "first_name": search_result.first_name,
             "last_name": search_result.last_name,
+            'image': search_result.image,
             "patronymic": search_result.patronymic,
             "post_name": result_position.position_name,
             "project_name": result_project.project_name,

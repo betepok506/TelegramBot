@@ -30,8 +30,8 @@ import requests
 import json
 from api import RequestAddresses
 
-SERVER_URI = os.getenv('SERVER_URI')  # , 'http://127.0.0.1:8001')
-TBOT_TOKEN = os.getenv('TELEGRAM_TOKEN')  # , '6599375870:AAHTXb1GSBtKHjG-SUHf555Kf332u1zLh6I')
+SERVER_URI = os.getenv('SERVER_URI') #, 'http://127.0.0.1:8001')
+TBOT_TOKEN = os.getenv('TELEGRAM_TOKEN')
 bot = telebot.TeleBot(TBOT_TOKEN)
 local_path = None
 
@@ -64,6 +64,7 @@ def send_welcome(message):
     bot.send_message(message.chat.id, 'Добрый день!')
     send_main_menu(message, 'Чем я могу вам помочь?')
 
+
 def suggestions_entering_employee_index(bot, message):
     markup = employee_index_entry_buttons('search_employees.enter_index',
                                           'exit_the_main_menu')
@@ -86,7 +87,8 @@ def employee_index_input_handler(message, markup_in_case_success, message_text_i
                              reply_markup=markup)
         else:
             # Запоминаем ввод пользователя
-            update_user_information({'user_id': message.chat.id, 'last_message': message.text})
+            update_user_information({'user_id': message.chat.id, 'last_message': message.text,
+                                     'image_buffer': response['image']})
 
             #  Печатаем информацию о найденном сотруднике
             bot.send_message(message.chat.id, 'Выбранный сотрудник: ')
@@ -370,7 +372,6 @@ def handle_inline_button_click(call):
 
     elif call.data == 'search_employees.edit_employee.project' or \
             call.data == 'main_menu.edit_employee.enter_index.edit_employee.project':
-
         # Очищаем информацию в базе о последнем сообщении
         send_request(requests.post, {"user_id": call.message.chat.id,
                                      'cur_state': UserStates.ENTERING_EMPLOYEE_PROJECT,
@@ -408,7 +409,7 @@ def handle_inline_button_click(call):
         if isinstance(response, int):
             convert_employee_id_to_information(call.message, SERVER_URI)
 
-        bot.send_message(call.message.chat.id, f'Введите {forms.FIELDS_IMG_REQUEST_FORM[0]["text"]} сотрудника')
+        bot.send_message(call.message.chat.id, f'Загрузите {forms.FIELDS_IMG_REQUEST_FORM[0]["text"]} сотрудника')
         bot.register_next_step_handler(call.message, handler_employee_information_input_event)
 
     elif call.data == 'search_employees.search_yes':

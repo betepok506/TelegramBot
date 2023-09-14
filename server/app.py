@@ -41,5 +41,5 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 #
-# if __name__ == "__main__":
-#     uvicorn.run("server.app:app", port=8001, log_level="info", reload=True)
+if __name__ == "__main__":
+    uvicorn.run("server.app:app", port=8001, log_level="info", reload=True)
