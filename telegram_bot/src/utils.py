@@ -10,6 +10,7 @@ class EmployeeInformationFields:
     POSITION = 'position'
     PROJECT = 'project'
     IMAGE_BUFFER = 'image_buffer'
+    TIME_ADDITION = 'time_addition'
 
 
 class CyclicInputRequestFields():

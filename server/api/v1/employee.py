@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, func, text, or_, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from datetime import datetime, timedelta
 from server.api import schemas
 from server.database import models as db_models
 from server.database.session import get_db_session
@@ -140,7 +140,8 @@ async def search_employee(
             "patronymic": item.patronymic,
             'image': item.image,
             "post_name": result_positions[ind].position_name,
-            "project_name": result_project[ind].project_name
+            "project_name": result_project[ind].project_name,
+            'time_addition': (item.time_addition + timedelta(hours=3)).strftime('%m/%d/%Y %H:%M:%S')
         })
 
     return JSONResponse(
@@ -189,6 +190,7 @@ async def search_employee_by_id(
             "patronymic": search_result.patronymic,
             "post_name": result_position.position_name,
             "project_name": result_project.project_name,
+            'time_addition': (search_result.time_addition + timedelta(hours=3)).strftime('%m/%d/%Y %H:%M:%S')
         }),
     )
 

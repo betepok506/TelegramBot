@@ -23,7 +23,7 @@ class Employees(Base):
     post = Column('post', Integer, ForeignKey("positions.id"))
     project = Column("project", Integer, ForeignKey("projects.id"))
     image = Column("image", LargeBinary, default=None)
-    time_addition = Column("time_addition", DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    time_addition = Column("time_addition", DateTime(timezone=True), server_default=func.now())
 
 
 class UserInformation(Base):

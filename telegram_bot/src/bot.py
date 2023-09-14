@@ -31,7 +31,7 @@ import json
 from api import RequestAddresses
 
 SERVER_URI = os.getenv('SERVER_URI') #, 'http://127.0.0.1:8001')
-TBOT_TOKEN = os.getenv('TELEGRAM_TOKEN')
+TBOT_TOKEN = os.getenv('TELEGRAM_TOKEN')#,
 bot = telebot.TeleBot(TBOT_TOKEN)
 local_path = None
 
