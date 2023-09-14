@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  server-db:
+    build:
+      context: ./
+      dockerfile: ./docker/db.Dockerfile
+    ports:
+      - '6501:5432'
+    restart: always
+    volumes:
+      - server-db-data:/var/lib/postgresql/data
+      - ./scripts:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_EXTENSIONS: pg_trgm ,another_extension
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+  telegram-bot:
+    build:
+      context: ./
+      dockerfile: ./docker/telegram-bot.Dockerfile
+    restart: always
+    environment:
+      SERVER_URI: ${SERVER_URI}
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+
+  server-api:
+    build:
+      context: ./
+      dockerfile: ./docker/server-api.Dockerfile
+    ports:
+      - ${PORT}:${PORT}
+    restart: always
+    environment:
+      PORT: ${PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DATABASE_URI: ${DATABASE_URI}
+
+volumes:
+  server-db-data:

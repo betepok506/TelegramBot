@@ -1,0 +1,37 @@
+@startuml C4_Elements
+!include <C4/C4_Container>
+!include <C4/C4_Component>
+'!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+'!define DEVICONS2 https://github.com/tupadr3/plantuml-icon-font-sprites/blob/master/devicons
+!define SPRITESURL https://raw.githubusercontent.com/plantuml-stdlib/gilbarbara-plantuml-sprites/v1.0/sprites
+'!include SPRITESURL/flask.puml
+'!include DEVICONS2/flask_original.puml
+'!include DEVICONS/postgresql.puml
+'!include DEVICONS/sqllite.puml
+
+
+
+AddElementTag("storage", $shape=RoundedBoxShape(), $bgColor="lightSkyBlue", $fontColor="white")
+AddElementTag("package", $shape=dBoxShape(), $bgColor="lightSkyBlue", $fontColor="white")
+
+SHOW_PERSON_OUTLINE()
+Person(operator, "Пользователь", "Основной пользователь системы")
+
+System_Boundary(main, "Основная система") {
+    Container_Boundary(api_server, "Docker-контейнер") {
+        Container(telegram_bot, "Telegram bot", $techn="telebot", $sprite="flask_original")
+        Container(fast_api_server, "Server API", $techn="FastAPI, SQLAlchemy")
+        ContainerDb(db, "База данных", $techn="PostgeSQL", $sprite="postgresql")
+    }
+}
+
+
+'Rel_D(web_client, fast_api_server, "Использование", $techn="REST API")
+Rel_D(fast_api_server, db, "Чтение/запись", $techn="SQLAlchemy")
+'Rel_R(fire_detector, fast_api_server, "Чтение/запись данных", $techn="REST API")
+Rel_U(operator, telegram_bot, "Использование")
+Rel_R(telegram_bot, fast_api_server, "API запросы", $techn="REST API")
+'BiRel_D(map_api, fast_api_server, "Чтение/запись информации о tiles", $techn="REST API")
+'BiRel_R(web_client, map_api, "Запрос tiles", $techn="REST API")
+
+@enduml
