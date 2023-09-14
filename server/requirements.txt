@@ -1,0 +1,7 @@
+sqlalchemy
+fastapi
+uvicorn
+fastapi_health
+alembic
+asyncpg
+pydantic-settings
