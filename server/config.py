@@ -12,9 +12,9 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     ENVIRONMENT: str = "local"
 
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD")#, 'postgres')
-    DATABASE_URI: str = os.getenv('DATABASE_URI')#, 'localhost:6501')
-    POSTGRES_USER: str = os.getenv('POSTGRES_USER')#, 'postgres')
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", 'postgres')
+    DATABASE_URI: str = os.getenv('DATABASE_URI', 'localhost:6501')
+    POSTGRES_USER: str = os.getenv('POSTGRES_USER', 'postgres')
     SQLALCHEMY_DATABASE_URL: str = f"postgresql+asyncpg://postgres:postgres@{DATABASE_URI}/{POSTGRES_PASSWORD}"
 
     # Database

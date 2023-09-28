@@ -62,7 +62,10 @@ def search_continuation_menu(callback_yes_button, callback_no_button, callback_e
 def creating_main_menu_buttons(callback_search_initial,
                                callback_add_employee,
                                callback_delete_employee,
-                               callback_edit_employee):
+                               callback_edit_employee,
+                               callback_show_employee_by_project,
+                               callback_show_employee_by_position,
+                               ):
     '''
     Функция для создания кнопок главного меню
 
@@ -81,8 +84,16 @@ def creating_main_menu_buttons(callback_search_initial,
                                                         callback_data=callback_delete_employee)
     button_edit_employee = types.InlineKeyboardButton('Редактировать информацию о сотруднике',
                                                       callback_data=callback_edit_employee)
+    button_show_all_employee_by_project = types.InlineKeyboardButton(
+        'Вывести всех сотрудников одного проекта',
+        callback_data=callback_show_employee_by_project)
 
-    keyboard.add(button_add_employee, button_delete_employee, button_search_employee, button_edit_employee)
+    button_show_all_employee_by_position = types.InlineKeyboardButton(
+        'Вывести всех сотрудников одной должности',
+        callback_data=callback_show_employee_by_position)
+
+    keyboard.add(button_add_employee, button_delete_employee, button_search_employee, button_edit_employee,
+                 button_show_all_employee_by_project, button_show_all_employee_by_position)
     return keyboard
 
 
@@ -152,4 +163,18 @@ def extended_confirmation_command_menu(callback_confirmation, callback_re_entry,
     button_exit = types.InlineKeyboardButton('Отменить и выйти в главное меню', callback_data=callback_exit_menu)
 
     keyboard.add(button_confirmation, button_edit_input, button_exit)
+    return keyboard
+
+
+def search_menu(callback_full_name, callback_project, callback_position, callback_time_period, callback_exit_menu):
+    '''Расширенное Меню поиска сотрудников'''
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    button_full_name = types.InlineKeyboardButton('ФИО', callback_data=callback_full_name)
+    button_project = types.InlineKeyboardButton('Проект', callback_data=callback_project)
+    button_position = types.InlineKeyboardButton('Должность', callback_data=callback_position)
+    button_time_period = types.InlineKeyboardButton('Период прихода сотрудника', callback_data=callback_time_period)
+
+    button_exit = types.InlineKeyboardButton('Отменить и выйти в главное меню', callback_data=callback_exit_menu)
+
+    keyboard.add(button_full_name, button_project, button_time_period, button_position, button_exit)
     return keyboard

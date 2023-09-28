@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 class Employee(BaseModel):
     id: Optional[int] = 0
+    user_id: Optional[int]
     first_name: str
     last_name: str
     patronymic: Optional[str] = ''
@@ -13,11 +14,18 @@ class Employee(BaseModel):
 
 
 class EmployeeSearch(BaseModel):
-    first_name: str
-    last_name: str
-    patronymic: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    patronymic: Optional[str]
     offset: Optional[int] = 0
     limit: Optional[int] = 5
+    project: Optional[str] = None
+    position: Optional[str] = None
+
+
+class EmployeeSearchBetweenTime(BaseModel):
+    from_time: Optional[str]
+    to_time: Optional[str]
 
 
 class EmployeeSearchById(BaseModel):
@@ -26,6 +34,10 @@ class EmployeeSearchById(BaseModel):
 
 class Project(BaseModel):
     project_name: str
+
+
+class PostSearchById(BaseModel):
+    id: int
 
 
 class ProjectUpdate(BaseModel):
@@ -50,3 +62,4 @@ class UserInformation(BaseModel):
     cur_state: Optional[int] = None
     ind: Optional[int] = None
     end_ind: Optional[int] = None
+    role: Optional[int] = 0

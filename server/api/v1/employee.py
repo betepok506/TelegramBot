@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, func, text, or_, delete, update
+from sqlalchemy import select, func, text, or_, delete, update, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 from server.api import schemas
@@ -29,6 +29,22 @@ async def add_employee(
         result_img = data['image'].encode('utf-8')
     else:
         result_img = None
+
+    print(f'Cur chat id: {data["user_id"]}')
+
+    # Запрашиваем роль у пользователя, про проверки прав доступа
+    search_results = await session.scalars(
+        select(db_models.UserInformation).filter_by(user_id=data['user_id']))
+
+    result = [item for item in search_results]
+    result = result[0]
+    if result.role == 0:
+        print(f'Недостаточно прав для редактирвоани : {result.user_id}')
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content=jsonable_encoder({"detail": "You don't have enough rights to edit"}),
+        )
+    ###
 
     employee = db_models.Employees(first_name=data['first_name'],
                                    last_name=data['last_name'],
@@ -84,8 +100,8 @@ async def update_employee(
     )
 
 
-@router.post("/search_employee", status_code=status.HTTP_200_OK)
-async def search_employee(
+@router.post("/search_employee_by_full_name", status_code=status.HTTP_200_OK)
+async def search_employee_by_full_name(
         data: schemas.EmployeeSearch,
         session: AsyncSession = Depends(get_db_session),
 ):
@@ -117,6 +133,163 @@ async def search_employee(
         func.similarity(db_models.Employees.patronymic, term).desc(),
     ))
     search_result = [item for item in search_result]
+
+    list_projects, list_positions = [], []
+    for item in search_result:
+        list_projects.append(item.project)
+        list_positions.append(item.post)
+
+    result_project = await session.scalars(
+        select(db_models.Projects).filter(db_models.Projects.id.in_(list(list_projects))))
+    result_project = [item for item in result_project]
+
+    result_positions = await session.scalars(
+        select(db_models.Positions).filter(db_models.Positions.id.in_(list(list_positions))))
+    result_positions = [item for item in result_positions]
+
+    result = []
+    for ind, item in enumerate(search_result):
+        result.append({
+            'id': item.id,
+            "first_name": item.first_name,
+            "last_name": item.last_name,
+            "patronymic": item.patronymic,
+            'image': item.image,
+            "post_name": result_positions[ind].position_name,
+            "project_name": result_project[ind].project_name,
+            'time_addition': (item.time_addition + timedelta(hours=3)).strftime('%m/%d/%Y %H:%M:%S')
+        })
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=jsonable_encoder({"content": result}),
+    )
+
+
+@router.post("/search_employee_by_project", status_code=status.HTTP_200_OK)
+async def search_employee_by_project(
+        data: schemas.EmployeeSearch,
+        session: AsyncSession = Depends(get_db_session),
+):
+    data = data.dict()
+
+    term = data['project']
+    term = term.lower()
+
+    offset = data['offset']
+    limit = data['limit']
+
+    search_result = await session.scalars(select(
+        db_models.Employees,
+        func.similarity(func.lower(db_models.Projects.project_name), term),
+    ).where(and_(db_models.Employees.project == db_models.Projects.id,
+                 db_models.Projects.project_name.bool_op('%')(term))
+            ).limit(limit).offset(offset).order_by(
+        func.similarity(db_models.Projects.project_name, term).desc()
+    ))
+    search_result = [item for item in search_result]
+
+    list_projects, list_positions = [], []
+    for item in search_result:
+        list_projects.append(item.project)
+        list_positions.append(item.post)
+
+    result_project = await session.scalars(
+        select(db_models.Projects).filter(db_models.Projects.id.in_(list(list_projects))))
+    result_project = [item for item in result_project]
+
+    result_positions = await session.scalars(
+        select(db_models.Positions).filter(db_models.Positions.id.in_(list(list_positions))))
+    result_positions = [item for item in result_positions]
+
+    result = []
+    for ind, item in enumerate(search_result):
+        result.append({
+            'id': item.id,
+            "first_name": item.first_name,
+            "last_name": item.last_name,
+            "patronymic": item.patronymic,
+            'image': item.image,
+            "post_name": result_positions[ind].position_name,
+            "project_name": result_project[ind].project_name,
+            'time_addition': (item.time_addition + timedelta(hours=3)).strftime('%m/%d/%Y %H:%M:%S')
+        })
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=jsonable_encoder({"content": result}),
+    )
+
+
+@router.post("/search_employee_by_position", status_code=status.HTTP_200_OK)
+async def search_employee_by_position(
+        data: schemas.EmployeeSearch,
+        session: AsyncSession = Depends(get_db_session),
+):
+    data = data.dict()
+
+    position = data['position']
+    position = position.lower()
+
+    offset = data['offset']
+    limit = data['limit']
+
+    search_results = await session.scalars(select(
+        db_models.Employees
+    ).where(and_(db_models.Employees.post == db_models.Positions.id,
+                 func.lower(db_models.Positions.position_name) == position)
+            ).limit(limit).offset(offset))
+
+    search_result = [item for item in search_results]
+
+    list_projects, list_positions = [], []
+    for item in search_result:
+        list_projects.append(item.project)
+        list_positions.append(item.post)
+
+    result_project = await session.scalars(
+        select(db_models.Projects).filter(db_models.Projects.id.in_(list(list_projects))))
+    result_project = [item for item in result_project]
+
+    result_positions = await session.scalars(
+        select(db_models.Positions).filter(db_models.Positions.id.in_(list(list_positions))))
+    result_positions = [item for item in result_positions]
+
+    result = []
+    for ind, item in enumerate(search_result):
+        result.append({
+            'id': item.id,
+            "first_name": item.first_name,
+            "last_name": item.last_name,
+            "patronymic": item.patronymic,
+            'image': item.image,
+            "post_name": result_positions[ind].position_name,
+            "project_name": result_project[ind].project_name,
+            'time_addition': (item.time_addition + timedelta(hours=3)).strftime('%m/%d/%Y %H:%M:%S')
+        })
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=jsonable_encoder({"content": result}),
+    )
+
+
+@router.post("/search_employee_by_between_time", status_code=status.HTTP_200_OK)
+async def search_employee_by_between_time(
+        data: schemas.EmployeeSearchBetweenTime,
+        session: AsyncSession = Depends(get_db_session),
+):
+    data = data.dict()
+
+    from_time = data['from_time']
+    to_time = data['to_time']
+
+    search_results = await session.scalars(select(
+        db_models.Employees
+    ).filter(and_(db_models.Employees.time_addition >= from_time,
+                  db_models.Employees.time_addition <= to_time)))
+
+    search_result = [item for item in search_results]
 
     list_projects, list_positions = [], []
     for item in search_result:

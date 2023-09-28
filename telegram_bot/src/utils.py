@@ -46,7 +46,7 @@ class UserStates:
     ENTERING_EMPLOYEE_IMG = 8
 
 
-def send_request(func_requests, payload, url):
+def send_request(func_requests, payload, url, message=None, error_callback=None, successful_callback=None):
     payload = json.dumps(payload)
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     response = func_requests(url,

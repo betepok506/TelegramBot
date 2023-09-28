@@ -38,6 +38,20 @@ async def search_project(
         return []
 
 
+# @router.post("/search_project_by_id", status_code=status.HTTP_200_OK)
+# async def search_project_by_id(
+#         data: schemas.Project,
+#         session: AsyncSession = Depends(get_db_session),
+# ):
+#     data = data.dict()
+#     project = await session.scalars(
+#         select(db_models.Projects).filter_by(id=data['id']))
+#     result = [cur_project for cur_project in project]
+#     return JSONResponse(
+#         status_code=status.HTTP_200_OK,
+#         content=jsonable_encoder({"content": result}),
+#     )
+
 @router.post("/delete_project", status_code=status.HTTP_200_OK)
 async def delete_project(
         data: schemas.Project,

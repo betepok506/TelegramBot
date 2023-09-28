@@ -60,12 +60,12 @@ async def search_user_information(
                 "last_message": result[0].last_message,
                 "cur_state": result[0].cur_state,
                 "ind": result[0].ind,
-                "end_ind": result[0].end_ind
+                "end_ind": result[0].end_ind,
+                'role': result[0].role
             }),
         )
     else:
         return None
-
 
 
 @router.post("/update_user_information", status_code=status.HTTP_200_OK)
@@ -76,10 +76,29 @@ async def update_user_information(
     data = data.dict()
     if 'image_buffer' in data and data['image_buffer'] is not None:
         data['image_buffer'] = data['image_buffer'].encode('utf-8')
+    print(data)
 
     await session.execute(
         update(db_models.UserInformation).values(**{k: v for k, v in data.items() if v is not None}).filter_by(
             user_id=data['user_id']))
+    await session.commit()
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=jsonable_encoder({"detail": "Information has been successfully updated!"}),
+    )
+
+
+@router.post("/update_user_role", status_code=status.HTTP_200_OK)
+async def update_user_information(
+        data: schemas.UserInformation,
+        session: AsyncSession = Depends(get_db_session),
+):
+    data = data.dict()
+
+    await session.execute(
+        update(db_models.UserInformation).values({'role': data['role']}).filter_by(user_id=data['user_id']))
+
     await session.commit()
 
     return JSONResponse(

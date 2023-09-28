@@ -38,6 +38,9 @@ class UserInformation(Base):
     cur_state = Column('cur_state',  Integer, default=5)
     ind = Column('ind', Integer, default=0)
     end_ind = Column('end_ind', Integer, default=0)
+    role = Column('role', Integer, default=0)
+
+
 
 
 class Projects(Base):
