@@ -62,7 +62,10 @@ def search_continuation_menu(callback_yes_button, callback_no_button, callback_e
 def creating_main_menu_buttons(callback_search_initial,
                                callback_add_employee,
                                callback_delete_employee,
-                               callback_edit_employee):
+                               callback_edit_employee,
+                               callback_show_employee_by_project,
+                               callback_show_employee_by_position,
+                               ):
     '''
     Функция для создания кнопок главного меню
 
@@ -81,8 +84,16 @@ def creating_main_menu_buttons(callback_search_initial,
                                                         callback_data=callback_delete_employee)
     button_edit_employee = types.InlineKeyboardButton('Редактировать информацию о сотруднике',
                                                       callback_data=callback_edit_employee)
+    button_show_all_employee_by_project = types.InlineKeyboardButton(
+        'Вывести всех сотрудников одного проекта',
+        callback_data=callback_show_employee_by_project)
 
-    keyboard.add(button_add_employee, button_delete_employee, button_search_employee, button_edit_employee)
+    button_show_all_employee_by_position = types.InlineKeyboardButton(
+        'Вывести всех сотрудников одной должности',
+        callback_data=callback_show_employee_by_position)
+
+    keyboard.add(button_add_employee, button_delete_employee, button_search_employee, button_edit_employee,
+                 button_show_all_employee_by_project, button_show_all_employee_by_position)
     return keyboard
 
 

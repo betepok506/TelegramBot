@@ -55,7 +55,9 @@ def send_main_menu(message, message_text='Чем я могу вам помочь
     keyboard = creating_main_menu_buttons('main_menu.search_initial',
                                           'main_menu.add_employee',
                                           'main_menu.delete_employee',
-                                          'main_menu.edit_employee')
+                                          'main_menu.edit_employee',
+                                          'main_menu.show_employee_by_project',
+                                          'main_menu.show_employee_by_position')
 
     bot.send_message(message.chat.id, message_text, reply_markup=keyboard)
 
@@ -327,9 +329,47 @@ def search_employees_by_text_field(message, message_text, offset=0, type_field='
     bot.send_message(chat_id, 'Продолжить поиск сотрудников?', reply_markup=markup)
 
 
+def show_all_employees_by_text_field(message, message_text, type_field='positions'):
+    '''Функция поиска сотрудника, позволяющая зациклить ввывод информации'''
+    chat_id = message.chat.id
+    if type_field == 'project':
+        # Ищем сотрудников по проекту
+        project = message_text
+        response = send_request(requests.post,
+                                {"first_name": None,
+                                 "last_name": None,
+                                 'patronymic': None,
+                                 "project": project,
+                                 "offset": 0,
+                                 'limit': 1e18},
+                                SERVER_URI + RequestAddresses.SEARCH_EMPLOYEE_BY_PROJECT)
+        response = response['content']
+    elif type_field == 'position':
+        position = message_text
+        response = send_request(requests.post,
+                                {"first_name": None,
+                                 "last_name": None,
+                                 'patronymic': None,
+                                 "position": position,
+                                 "offset": 0, 'limit': 1e18},
+                                SERVER_URI + RequestAddresses.SEARCH_EMPLOYEE_BY_POSITION)
+        response = response['content']
+    else:
+        raise NotImplementedError('Данный тип поля не поддерживается!')
+
+    if len(response) == 0:
+        bot.send_message(chat_id, 'Совпадений не найдено :(')
+        send_main_menu(message, 'Чем я могу вам помочь?')
+        return
+
+    #  Печатаем информацию о найденных сотрудниках
+    output_employee_information(bot, chat_id, response)
+    send_main_menu(message, 'Чем я могу вам помочь?')
+
+
 # def search_employee_by_position_field()
 
-def get_all_positions(message):
+def get_all_positions_search(message, prefix='main_menu.search.position.id'):
     '''Запрашиваем все позиции и печатаем в виде меню'''
     response = send_request(requests.post, {'position_name': 'default'},
                             SERVER_URI + RequestAddresses.GET_ALL_POSITIONS)
@@ -337,9 +377,22 @@ def get_all_positions(message):
     for cur_pos in response['content']:
         keyboard.add(
             types.InlineKeyboardButton(f'{cur_pos["position_name"]}',
-                                       callback_data=f'main_menu.search.position.id={cur_pos["id"]}'))
+                                       callback_data=f'{prefix}={cur_pos["id"]}'))
 
     bot.send_message(message.chat.id, "Выберите должность для поиска", reply_markup=keyboard)
+
+
+# def get_all_project_search(message, prefix='main_menu.search.position.id'):
+#     '''Запрашиваем все позиции и печатаем в виде меню'''
+#     response = send_request(requests.post, {'position_name': 'default'},
+#                             SERVER_URI + RequestAddresses.GET_ALL_POSITIONS)
+#     keyboard = types.InlineKeyboardMarkup(row_width=1)
+#     for cur_pos in response['content']:
+#         keyboard.add(
+#             types.InlineKeyboardButton(f'{cur_pos["position_name"]}',
+#                                        callback_data=f'{prefix}={cur_pos["id"]}'))
+#
+#     bot.send_message(message.chat.id, "Выберите должность для поиска", reply_markup=keyboard)
 
 
 def init_search_employee_by_full_name(message):
@@ -351,11 +404,16 @@ def init_search_employee_by_project(message):
     search_employees_by_text_field(message, message.text, type_field='project')
 
 
+def init_show_all_project(message):
+    message_text = message.text
+    show_all_employees_by_text_field(message, message_text, type_field='project')
+
+
 def init_search_employee_by_position(message):
     '''
     Инифиализация поиска сотрудника по позиции (Кнопками)
     '''
-    get_all_positions(message)
+    get_all_positions_search(message)
 
 
 def init_search_employee_by_time_period(message):
@@ -431,28 +489,51 @@ def handle_inline_button_click(call):
                                      }, SERVER_URI + RequestAddresses.UPDATE_USER_INFORMATION)
 
         search_employees_by_text_field(call.message, position['position_name'], type_field='position')
-        # # response = search_employee_query_by_position(chat_id, position['position_name'])
-        # # print(response)
-        # # if len(response) == 0:
-        # #     if offset == 0:
-        # #         bot.send_message(chat_id, 'Совпадений не найдено :(')
-        # #         send_main_menu(message, 'Чем я могу вам помочь?')
-        # #
-        # #     else:
-        # #         bot.send_message(chat_id, "Больше совпадений не найдено :(")
-        # #         # Выводим меню для выбора ввода индекса или выхода
-        # #         suggestions_entering_employee_index(bot, message)
-        # #
-        # #     return
-        #
-        # #  Печатаем информацию о найденных сотрудниках
-        # output_employee_information(bot, chat_id, response)
-        #
-        # # Предлагаем продолжить поиск
-        # markup = search_continuation_menu('search_employees.search_yes',
-        #                                   'search_employees.search_no',
-        #                                   "exit_the_main_menu")
-        # bot.send_message(chat_id, 'Продолжить поиск сотрудников?', reply_markup=markup)
+
+    elif call.data == 'main_menu.show_employee_by_position':
+        # Отображдаем всех сотрудников по должности
+        get_all_positions_search(message=call.message, prefix="main_menu.show_employee_by_position")
+
+    elif call.data.startswith('main_menu.show_employee_by_position='):
+        ind_pos = call.data[call.data.find('=') + 1:]
+        # Запросить проект по id
+        response = send_request(requests.post, {'id': int(ind_pos)}, SERVER_URI + RequestAddresses.SEARCH_POST_BY_ID)
+        position = response['content'][0]
+        # По имени запросить всех сотрудников с таким проенктом
+        print(position)
+
+        # Сохраняем проект пользователя
+        send_request(requests.post, {'user_id': chat_id,
+                                     'last_message': position['position_name'],
+                                     "offset": 0,
+                                     'role': None
+                                     }, SERVER_URI + RequestAddresses.UPDATE_USER_INFORMATION)
+
+        show_all_employees_by_text_field(message=call.message, message_text=position['position_name'],
+                                         type_field='position')
+
+    elif call.data == 'main_menu.show_employee_by_project':
+        # Отображдаем всех сотрудников по проекту
+        bot.send_message(chat_id, 'Введите проект сотрудника')
+        bot.register_next_step_handler(call.message, init_show_all_project)
+
+    elif call.data.startswith('main_menu.show_employee_by_project='):
+        ind_pos = call.data[call.data.find('=') + 1:]
+        # Запросить проект по id
+        response = send_request(requests.post, {'id': int(ind_pos)}, SERVER_URI + RequestAddresses.SEARCH_POST_BY_ID)
+        position = response['content'][0]
+        # По имени запросить всех сотрудников с таким проенктом
+        print(position)
+
+        # Сохраняем проект пользователя
+        send_request(requests.post, {'user_id': chat_id,
+                                     'last_message': position['project_name'],
+                                     "offset": 0,
+                                     'role': None
+                                     }, SERVER_URI + RequestAddresses.UPDATE_USER_INFORMATION)
+
+        show_all_employees_by_text_field(message=call.message, message_text=position['project_name'],
+                                         type_field='project')
 
     elif call.data == 'main_menu.search.time_period':
         # Инициализируем поиск по периоду
