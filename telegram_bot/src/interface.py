@@ -153,3 +153,17 @@ def extended_confirmation_command_menu(callback_confirmation, callback_re_entry,
 
     keyboard.add(button_confirmation, button_edit_input, button_exit)
     return keyboard
+
+
+def search_menu(callback_full_name, callback_project, callback_position, callback_time_period, callback_exit_menu):
+    '''Расширенное Меню поиска сотрудников'''
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
+    button_full_name = types.InlineKeyboardButton('ФИО', callback_data=callback_full_name)
+    button_project = types.InlineKeyboardButton('Проект', callback_data=callback_project)
+    button_position = types.InlineKeyboardButton('Должность', callback_data=callback_position)
+    button_time_period = types.InlineKeyboardButton('Период прихода сотрудника', callback_data=callback_time_period)
+
+    button_exit = types.InlineKeyboardButton('Отменить и выйти в главное меню', callback_data=callback_exit_menu)
+
+    keyboard.add(button_full_name, button_project, button_time_period, button_position, button_exit)
+    return keyboard
