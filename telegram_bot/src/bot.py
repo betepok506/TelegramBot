@@ -422,7 +422,7 @@ def get_to_time(message, from_time):
         response = send_request(requests.post,
                                 {"from_time": from_time,
                                  "to_time": message_text},
-                                SERVER_URI + RequestAddresses.SEARCH_EMPLOYEE_BY_POSITION)
+                                SERVER_URI + RequestAddresses.SEARCH_EMPLOYEE_BY_TIME)
         response = response['content']
 
         if len(response) == 0:
