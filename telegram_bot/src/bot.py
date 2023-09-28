@@ -477,14 +477,8 @@ def handle_inline_button_click(call):
     if call.data == 'main_menu.search_initial' or \
             call.data == 'main_menu.delete_employee.search_initial' or \
             call.data == 'main_menu.edit_employee.search_initial':
-        print('Нажатие на кнопку найти сотруднка')
         # Кнопка "Поиск сотрудников"
         init_employee_search(call.message)
-        # bot.register_next_step_handler(call.message, init_employee_search)
-
-        # old
-        # bot.send_message(chat_id, 'Введите ФИО сотрудника')
-        # bot.register_next_step_handler(call.message, init_employee_search)
     # Новый поиск
     elif call.data == 'main_menu.search.full_name':
         # Инициализируем поиск по ФИО
@@ -507,7 +501,6 @@ def handle_inline_button_click(call):
         response = send_request(requests.post, {'id': int(ind_pos)}, SERVER_URI + RequestAddresses.SEARCH_POST_BY_ID)
         position = response['content'][0]
         # По имени запросить всех сотрудников с таким проенктом
-        print(position)
 
         # Сохраняем проект пользователя
         send_request(requests.post, {'user_id': chat_id,
@@ -528,7 +521,6 @@ def handle_inline_button_click(call):
         response = send_request(requests.post, {'id': int(ind_pos)}, SERVER_URI + RequestAddresses.SEARCH_POST_BY_ID)
         position = response['content'][0]
         # По имени запросить всех сотрудников с таким проенктом
-        print(position)
 
         # Сохраняем проект пользователя
         send_request(requests.post, {'user_id': chat_id,
@@ -551,7 +543,6 @@ def handle_inline_button_click(call):
         response = send_request(requests.post, {'id': int(ind_pos)}, SERVER_URI + RequestAddresses.SEARCH_POST_BY_ID)
         position = response['content'][0]
         # По имени запросить всех сотрудников с таким проенктом
-        print(position)
 
         # Сохраняем проект пользователя
         send_request(requests.post, {'user_id': chat_id,
@@ -710,7 +701,7 @@ def handle_inline_button_click(call):
                                  {'user_id': call.message.chat.id},
                                  SERVER_URI + RequestAddresses.SEARCH_USER_INFORMATION)
         type_field = call.data[call.data.find('=') + 1:]
-        print(type_field)
+
         # Если пользователь не был инициализирован ранее
         if user_info is None:
             init_user(chat_id)
@@ -807,7 +798,6 @@ def handle_inline_button_click(call):
         # Проверяем права пользователя
         response = send_request(requests.post, {"user_id": call.message.chat.id},
                                 SERVER_URI + RequestAddresses.SEARCH_USER_INFORMATION)
-        print(f'Добавление сотрудника: {response}')
 
         if response['role'] != 1:
             # Доступ пользователю не разрешен. Возвращаем его в главное мепню
@@ -830,7 +820,6 @@ def handle_inline_button_click(call):
         # Проверяем права пользователя
         response = send_request(requests.post, {"user_id": call.message.chat.id},
                                 SERVER_URI + RequestAddresses.SEARCH_USER_INFORMATION)
-        print(f'Добавление сотрудника: {response}')
 
         if response['role'] != 1:
             # Доступ пользователю не разрешен. Возвращаем его в главное мепню
@@ -852,7 +841,7 @@ def handle_inline_button_click(call):
     elif call.data == 'main_menu.add_employee':
         response = send_request(requests.post, {"user_id": call.message.chat.id},
                                 SERVER_URI + RequestAddresses.SEARCH_USER_INFORMATION)
-        print(f'Добавление сотрудника: {response}')
+
 
         if response['role'] != 1:
             # Доступ пользователю не разрешен. Возвращаем его в главное мепню
