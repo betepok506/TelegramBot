@@ -1,5 +1,6 @@
 import os
 import telebot
+import datetime
 from interface import (
     extended_confirmation_command_menu,
     index_entry_or_employee_search_menu,
@@ -354,6 +355,15 @@ def show_all_employees_by_text_field(message, message_text, type_field='position
                                  "offset": 0, 'limit': 1e18},
                                 SERVER_URI + RequestAddresses.SEARCH_EMPLOYEE_BY_POSITION)
         response = response['content']
+    elif type_field == 'time':
+        response = send_request(requests.post,
+                                {"first_name": None,
+                                 "last_name": None,
+                                 'patronymic': None,
+                                 "position": position,
+                                 "offset": 0, 'limit': 1e18},
+                                SERVER_URI + RequestAddresses.SEARCH_EMPLOYEE_BY_POSITION)
+        response = response['content']
     else:
         raise NotImplementedError('Данный тип поля не поддерживается!')
 
@@ -382,18 +392,6 @@ def get_all_positions_search(message, prefix='main_menu.search.position.id'):
     bot.send_message(message.chat.id, "Выберите должность для поиска", reply_markup=keyboard)
 
 
-# def get_all_project_search(message, prefix='main_menu.search.position.id'):
-#     '''Запрашиваем все позиции и печатаем в виде меню'''
-#     response = send_request(requests.post, {'position_name': 'default'},
-#                             SERVER_URI + RequestAddresses.GET_ALL_POSITIONS)
-#     keyboard = types.InlineKeyboardMarkup(row_width=1)
-#     for cur_pos in response['content']:
-#         keyboard.add(
-#             types.InlineKeyboardButton(f'{cur_pos["position_name"]}',
-#                                        callback_data=f'{prefix}={cur_pos["id"]}'))
-#
-#     bot.send_message(message.chat.id, "Выберите должность для поиска", reply_markup=keyboard)
-
 
 def init_search_employee_by_full_name(message):
     search_employees_by_text_field(message, message.text, type_field='full_name')
@@ -416,9 +414,39 @@ def init_search_employee_by_position(message):
     get_all_positions_search(message)
 
 
-def init_search_employee_by_time_period(message):
-    '''Инифиализация поиска сотрудника по периоду прибытия'''
-    pass
+def get_to_time(message, from_time):
+    message_text = message.text
+    try:
+        dt = datetime.datetime.strptime(message_text, '%Y-%m-%d')
+
+        response = send_request(requests.post,
+                                {"from_time": from_time,
+                                 "to_time": message_text},
+                                SERVER_URI + RequestAddresses.SEARCH_EMPLOYEE_BY_POSITION)
+        response = response['content']
+
+        if len(response) == 0:
+            bot.send_message(message.chat_id, 'Совпадений не найдено :(')
+            send_main_menu(message, 'Чем я могу вам помочь?')
+            return
+
+        #  Печатаем информацию о найденных сотрудниках
+        output_employee_information(bot, message.chat_id, response)
+        send_main_menu(message, 'Чем я могу вам помочь?')
+
+    except:
+        bot.send_message(message.chat.id, 'Некорректно введено время. Повторите попытку')
+        bot.register_next_step_handler(message, get_to_time)
+
+def get_from_time(message):
+    message_text = message.text
+    try:
+        dt = datetime.datetime.strptime(message_text, '%Y-%m-%d')
+        bot.send_message(message.chat.id, 'ДО какого времени искать?')
+        bot.register_next_step_handler(message, get_to_time, message_text)
+    except:
+        bot.send_message(message.chat.id, 'Некорректно введено время. Повторите попытку')
+        bot.register_next_step_handler(message, get_from_time)
 
 
 def init_employee_search(message):
@@ -537,8 +565,8 @@ def handle_inline_button_click(call):
 
     elif call.data == 'main_menu.search.time_period':
         # Инициализируем поиск по периоду
-        bot.send_message(chat_id, 'Введите период времени добавления сотрудника, по которому хотите его найти')
-        bot.register_next_step_handler(call.message, )
+        bot.send_message(chat_id, 'Введите ОТ какого времени добавления сотрудника, вы хотите его найти в формате %Y-%m-%d')
+        bot.register_next_step_handler(call.message, get_from_time)
 
     elif call.data == 'search_employees.edit_employee.first_name' or \
             call.data == 'main_menu.edit_employee.enter_index.edit_employee.first_name':

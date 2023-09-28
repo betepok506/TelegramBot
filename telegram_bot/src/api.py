@@ -3,6 +3,7 @@ class RequestAddresses:
     SEARCH_EMPLOYEE_BY_FULL_NAME = '/api/v1/search_employee_by_full_name'
     SEARCH_EMPLOYEE_BY_PROJECT = '/api/v1/search_employee_by_project'
     SEARCH_EMPLOYEE_BY_POSITION = '/api/v1/search_employee_by_position'
+    SEARCH_EMPLOYEE_BY_TIME = '/api/v1/search_employee_by_between_time'
     GET_ALL_POSITIONS = '/api/v1/get_all_positions'
 
     SEARCH_POST_BY_ID = '/api/v1/search_post_by_id'

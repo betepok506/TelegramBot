@@ -23,6 +23,11 @@ class EmployeeSearch(BaseModel):
     position: Optional[str] = None
 
 
+class EmployeeSearchBetweenTime(BaseModel):
+    from_time: Optional[str]
+    to_time: Optional[str]
+
+
 class EmployeeSearchById(BaseModel):
     id: int
 

@@ -274,6 +274,55 @@ async def search_employee_by_position(
     )
 
 
+@router.post("/search_employee_by_between_time", status_code=status.HTTP_200_OK)
+async def search_employee_by_between_time(
+        data: schemas.EmployeeSearchBetweenTime,
+        session: AsyncSession = Depends(get_db_session),
+):
+    data = data.dict()
+
+    from_time = data['from_time']
+    to_time = data['to_time']
+
+    search_results = await session.scalars(select(
+        db_models.Employees
+    ).filter(and_(db_models.Employees.time_addition >= from_time,
+                  db_models.Employees.time_addition <= to_time)))
+
+    search_result = [item for item in search_results]
+
+    list_projects, list_positions = [], []
+    for item in search_result:
+        list_projects.append(item.project)
+        list_positions.append(item.post)
+
+    result_project = await session.scalars(
+        select(db_models.Projects).filter(db_models.Projects.id.in_(list(list_projects))))
+    result_project = [item for item in result_project]
+
+    result_positions = await session.scalars(
+        select(db_models.Positions).filter(db_models.Positions.id.in_(list(list_positions))))
+    result_positions = [item for item in result_positions]
+
+    result = []
+    for ind, item in enumerate(search_result):
+        result.append({
+            'id': item.id,
+            "first_name": item.first_name,
+            "last_name": item.last_name,
+            "patronymic": item.patronymic,
+            'image': item.image,
+            "post_name": result_positions[ind].position_name,
+            "project_name": result_project[ind].project_name,
+            'time_addition': (item.time_addition + timedelta(hours=3)).strftime('%m/%d/%Y %H:%M:%S')
+        })
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=jsonable_encoder({"content": result}),
+    )
+
+
 @router.post("/search_employee_by_id", status_code=status.HTTP_200_OK)
 async def search_employee_by_id(
         data: schemas.EmployeeSearchById,
